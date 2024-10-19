@@ -11,16 +11,13 @@
 
 class GameTable;
 
-class Game
-{
+class Game {
 public:
 	Game();
 	~Game();
 
 	void		startGame();
-
 	virtual		void	setUpBoard() = 0;
-
 	virtual		void	drawFrame() = 0;
 
 	// end the current game turn
@@ -35,7 +32,7 @@ public:
 	virtual		bool	canBitMoveFromTo(Bit* bit, BitHolder*src, BitHolder*dst) = 0;
 
 	// can we do something with an empty holder?  do it here
-	virtual		bool	actionForEmptyHolder(BitHolder *holder);
+	virtual		bool	actionForEmptyHolder(BitHolder& holder);
 
 	// Should handle any side effects of a Bit's movement, such as captures or scoring.
 	// Does not need to do the actual movement! That's already happened.
@@ -85,5 +82,7 @@ public:
 
 	int						_gameNumber;
     bool                	_AIPlaying;
+
+	bool					_gameOver;
 };
 

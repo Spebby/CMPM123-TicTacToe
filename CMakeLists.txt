@@ -41,23 +41,27 @@ else() # Linux
     set(IMPL_FILE "imgui/imgui_impl_glfw.cpp")
 endif()
 
+set(SOURCES
+	Application.cpp
+	imgui/imgui_demo.cpp
+	imgui/imgui_draw.cpp
+	imgui/imgui_tables.cpp
+	imgui/imgui_widgets.cpp
+	imgui/imgui.cpp
+	imgui/imgui_impl_opengl3.cpp
+    classes/Bit.cpp
+    classes/BitHolder.cpp
+    classes/Game.cpp
+    classes/Sprite.cpp
+    classes/Square.cpp
+    classes/TicTacToe.cpp
+    ${MAIN_FILE}
+    ${IMPL_FILE}
+    tools/Logger.cpp
+)
+
 # Define the executable and sources
-add_executable(tictactoe Application.cpp
-                          imgui/imgui_demo.cpp
-                          imgui/imgui_draw.cpp
-                          imgui/imgui_tables.cpp
-                          imgui/imgui_widgets.cpp
-                          imgui/imgui.cpp
-                          imgui/imgui_impl_opengl3.cpp
-                          classes/Bit.cpp
-                          classes/BitHolder.cpp
-                          classes/Game.cpp
-                          classes/Sprite.cpp
-                          classes/Square.cpp
-                          classes/TicTacToe.cpp
-                          ${MAIN_FILE}
-                          ${IMPL_FILE}
-                )
+add_executable(tictactoe ${SOURCES})
 
 # Link libraries based on the platform
 if(MACOS OR LINUX)

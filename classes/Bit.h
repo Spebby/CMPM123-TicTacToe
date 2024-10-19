@@ -11,20 +11,16 @@ class BitHolder;
 #define kPickedUpScale   1.2f
 #define kPickedUpOpacity 255
 
-
-enum bitz
-{
+enum bitz {
 	kBoardZ = 0,
 	kPieceZ = 3,
 	kPickupUpZ = 9920,
 	kMovingZ = 9930
 };
 
-class Bit : public Sprite
-{
-public:
+class Bit : public Sprite {
+	public:
 	Bit() : Sprite() { _pickedUp = false; _owner = nullptr; _gameTag = 0; };
-	
 	~Bit();
 
 	// helper functions
@@ -45,11 +41,10 @@ public:
 	// move to a position
 	void		moveTo(const ImVec2 &point);
 	void		setOpacity(float opacity) { };
-private:
+	private:
 	int			_restingZ;
 	float		_restingTransform;
 	bool		_pickedUp;
 	Player*		_owner;
 	int			_gameTag;
 };
-

@@ -10,9 +10,8 @@
 // this is the AI class
 // we use a small clone here so we can recursively call minimax
 //
-struct TicTacToeAI
-{
-    int   _grid[3][3];
+struct TicTacToeAI {
+    int   _grid[9];
     bool isBoardFull() const;
     int evaluateBoard();
     int evaluateBoardMinimax();
@@ -25,8 +24,7 @@ struct TicTacToeAI
 //
 // the main game class
 //
-class TicTacToe : public Game
-{
+class TicTacToe : public Game {
 public:
     TicTacToe();
     ~TicTacToe();
@@ -40,9 +38,12 @@ public:
     std::string initialStateString() override;
     std::string stateString() const override;
     void        setStateString(const std::string &s) override;
-    bool        actionForEmptyHolder(BitHolder *holder) override;
+    bool        actionForEmptyHolder(BitHolder& holder) override;
     bool        canBitMoveFrom(Bit*bit, BitHolder *src) override;
     bool        canBitMoveFromTo(Bit* bit, BitHolder*src, BitHolder*dst) override;
+    /**
+     * @abstract free all the memory used by the game on the heap
+     */
     void        stopGame() override;
 
     TicTacToeAI* clone();
@@ -53,6 +54,15 @@ private:
     Player*     ownerAt(int index ) const;
 
     void        scanForMouse();
-    Square      _grid[3][3];
+    Square      _grid[9];
+    int _winStates[8][3] = {
+        {0, 1, 2},
+        {3, 4, 5},
+        {6, 7, 8},
+        {0, 3, 6},
+        {1, 4, 7},
+        {2, 5, 8},
+        {0, 4, 8},
+        {2, 4, 6}
+    };
 };
-

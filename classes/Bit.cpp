@@ -3,12 +3,10 @@
 #include "BitHolder.h"
 
 
-Bit::~Bit()
-{
+Bit::~Bit() {
 }
 
-BitHolder* Bit::getHolder()
-{
+BitHolder* Bit::getHolder() {
 	// Look for my nearest ancestor that's a BitHolder:
 	for (Entity *layer = getParent(); layer; layer = layer->getParent()) {
 		if (layer->getEntityType() == EntityBitHolder)
@@ -20,8 +18,7 @@ BitHolder* Bit::getHolder()
 }
 
 
-void Bit::setPickedUp(bool up)
-{
+void Bit::setPickedUp(bool up) {
 	if (up != _pickedUp) {
 		float opacity = 0.0f;
 		float scale = 1.0f;
@@ -52,23 +49,18 @@ void Bit::setPickedUp(bool up)
 	}
 }
 
-bool Bit::friendly()
-{
+bool Bit::friendly() {
 	return true;
 }
 
-bool Bit::unfriendly()
-{
+bool Bit::unfriendly() {
 	return false;
 }
 
-bool Bit::getPickedUp()
-{
+bool Bit::getPickedUp() {
 	return _pickedUp;
 }
 
-Player* Bit::getOwner()
-{
+Player* Bit::getOwner() {
 	return _owner;
 }
-

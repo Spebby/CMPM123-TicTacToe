@@ -4,8 +4,7 @@
 #include "Turn.h"
 #include "../Application.h"
 
-Game::Game()
-{
+Game::Game() {
 	_score = 0;
 	_table = nullptr;
 	_winner = nullptr;
@@ -13,11 +12,11 @@ Game::Game()
 	_lastMove = "";
 	_gameNumber = -1;
 	_AIPlaying = false;
+	_gameOver  = false;
 }
 
 
-Game::~Game()
-{
+Game::~Game() {
 	for (auto & _turn : _turns) {
 		delete _turn;
 	}
@@ -34,18 +33,17 @@ Game::~Game()
 	_lastMove = "";
 }
 
-void Game::setNumberOfPlayers(unsigned int n)
-{
+void Game::setNumberOfPlayers(unsigned int n) {
 	_players.clear();
-	for (unsigned int i = 1; i <= n; i++)
-	{
+	for (unsigned int i = 1; i <= n; i++) {
 		Player *player = Player::initWithGame(this);
-//		player->setName( std::format( "Player-{}", i ) );
+		// player->setName( std::format( "Player-{}", i ) );
 		player->setName( "Player" );
-		player->setPlayerNumber(i-1);			// player numbers are zero-based
+		player->setPlayerNumber(i-1); // player numbers are zero-based
 		_players.push_back(player);
 	}
 	_winner = nullptr;
+	_gameOver = false;
 	_gameNumber = 0;
 
 	Turn *turn = Turn::initStartOfGame(this);
@@ -53,13 +51,11 @@ void Game::setNumberOfPlayers(unsigned int n)
 	_turns.push_back(turn);
 }
 
-void Game::setAIPlayer(unsigned int playerNumber)
-{
+void Game::setAIPlayer(unsigned int playerNumber) {
 	_players.at(playerNumber)->setAIPlayer(true);
 }
 
-void Game::startGame()
-{
+void Game::startGame() {
 	std::string startState = stateString();
 	Turn *turn = _turns.at(0);
 	turn->_boardState = startState;
@@ -67,8 +63,7 @@ void Game::startGame()
 	_currentTurnNo = 0;
 }
 
-void Game::endTurn()
-{
+void Game::endTurn() {
 	_currentTurnNo++;
 	std::string startState = stateString();
 	Turn *turn = new Turn;
@@ -80,37 +75,30 @@ void Game::endTurn()
 	ClassGame::EndOfTurn();
 }
 
-void Game::bitMovedFromTo(Bit *bit, BitHolder *src, BitHolder *dst)
-{
+void Game::bitMovedFromTo(Bit *bit, BitHolder *src, BitHolder *dst) {
 	endTurn();
 }
 
-Bit* Game::bitToPlaceInHolder(BitHolder *holder)
-{
+Bit* Game::bitToPlaceInHolder(BitHolder *holder) {
 	return nullptr;
 }
 
-bool Game::actionForEmptyHolder(BitHolder *holder)
-{
+bool Game::actionForEmptyHolder(BitHolder& holder) {
 	return false;
 }
 
-bool Game::clickedBit(Bit *bit)
-{
+bool Game::clickedBit(Bit *bit) {
 	return true;
 }
 
-bool Game::animateAndPlaceBitFromTo(Bit *bit, BitHolder*src, BitHolder*dst)
-{
+bool Game::animateAndPlaceBitFromTo(Bit *bit, BitHolder*src, BitHolder*dst) {
 	return false;
 }
 
-bool Game::gameHasAI()
-{
+bool Game::gameHasAI() {
     return false;
 }
 
-void Game::updateAI()
-{
-}
+void Game::updateAI() {
 
+}

@@ -52,4 +52,3 @@ protected:
 	Bit		*_bit;
 	int		_gameTag;
 };
-
