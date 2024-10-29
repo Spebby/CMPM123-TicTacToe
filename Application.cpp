@@ -10,6 +10,8 @@ namespace ClassGame {
     TicTacToe *game = nullptr;
     bool gameOver = false;
     int gameWinner = -1;
+    bool OisAI = false;
+    bool XisAI = false;
 
     // game starting point
     // this is called by the main render loop in main.cpp
@@ -29,19 +31,38 @@ namespace ClassGame {
         //ImGui::ShowDemoWindow();
 
         ImGui::Begin("Settings");
-        //ImGui::Text("Current Player Number: %d", game->getCurrentPlayer()->playerNumber());
-        //ImGui::Text("Current Board State: %s", game->stateString().c_str());
+
+        if (game->getCurrentPlayer()->playerNumber() == 0) {
+            if (ImGui::Checkbox("Is O an AI?", &OisAI)) {
+                game->getCurrentPlayer()->setAIPlayer(OisAI);
+            }
+        } else {
+            if (ImGui::Checkbox("Is X an AI?", &XisAI)) {
+                game->getCurrentPlayer()->setAIPlayer(XisAI);
+            }
+        }
+        ImGui::Text("Current Player Number: %d", game->getCurrentPlayer()->playerNumber());
+        ImGui::Text("Current Board State: %s", game->stateString().c_str());
 
         if (game->_gameOver) {
             ImGui::Text("Game Over!");
             ImGui::Text("Winner: %d", gameWinner);
-            if (ImGui::Button("Reset Game")) {
-                game->stopGame();
-                game->setUpBoard();
-                game->_gameOver = false;
-                gameWinner = -1;
-            }
         }
+
+        if (ImGui::Button("Reset Game")) {
+            // no more ais
+            for (Player* p : game->_players) {
+                game->setAIPlayer(false);
+            }
+            OisAI = false;
+            XisAI = false;
+
+            game->stopGame();
+            game->setUpBoard();
+            game->_gameOver = false;
+            gameWinner = -1;
+        }
+
         ImGui::End();
 
         ImGui::Begin("GameWindow");

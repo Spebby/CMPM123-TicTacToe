@@ -12,11 +12,10 @@
 //
 struct TicTacToeAI {
     int   _grid[9];
+    int   _depthSearches;
     bool isBoardFull() const;
-    int evaluateBoard();
-    int evaluateBoardMinimax();
-    int minimax(TicTacToeAI* state, int depth, bool isMaximizingPlayer);
-    int negamax(TicTacToeAI* state, int depth, int playerColor);
+    int evaluateBoard(int playerColor);
+    int negamax(TicTacToeAI* state, int depth, int alpha, int beta, int playerColor);
     int ownerAt(int index ) const;
     int AICheckForWinner();
 };
@@ -50,7 +49,7 @@ public:
 	void        updateAI() override;
     bool        gameHasAI() override { return true; }
 private:
-    Bit *       PieceForPlayer(const int playerNumber);
+    Bit*        PieceForPlayer(const int playerNumber);
     Player*     ownerAt(int index ) const;
 
     void        scanForMouse();

@@ -1,9 +1,6 @@
 #include "TicTacToe.h"
 #include "../tools/Logger.h"
 
-const int AI_PLAYER = 1;
-const int HUMAN_PLAYER = -1;
-
 TicTacToe::TicTacToe() {
 
 }
@@ -29,7 +26,7 @@ void TicTacToe::setUpBoard() {
 
     // setup the board
 	for (int i = 0; i < 9; i++) {
-		_grid[i].initHolder(ImVec2((i/3)*100 + 100, (i%3)*100 + 100), "square.png", i%3, i/3);
+		_grid[i].initHolder(ImVec2((i%3)*100 + 100, (i/3)*100 + 100), "square.png", i%3, i/3);
 	}
 
 	/*
@@ -42,15 +39,14 @@ void TicTacToe::setUpBoard() {
 	startGame();
 }
 
-//
 // scan for mouse is temporarily in the actual game class
 // this will be moved to a higher up class when the squares have a heirarchy
 // we want the event loop to be elsewhere and calling this class, not called by this class
 // but this is fine for tic-tac-toe
-//
 void TicTacToe::scanForMouse() {
-	if (gameHasAI() && getCurrentPlayer() && getCurrentPlayer()->isAIPlayer()) {
+	if (!_gameOver && getCurrentPlayer()->isAIPlayer()) {
 		updateAI();
+		endTurn();
 		return;
 	}
 
@@ -134,7 +130,6 @@ Player* TicTacToe::ownerAt(int index ) const {
 Player* TicTacToe::checkForWinner() {
 	// there are only 8 possible winning combinations in TTT, so just check those.
 	for (int* arr : _winStates) {
-		std::cout << arr[0] << " " << arr[1] << " " << arr[2] << std::endl;
 		// if 3 in a row are same owner, we have a winner
 		// bit can be null, so account for that :)
 		Player* a = _grid[arr[0]].bit() ? _grid[arr[0]].bit()->getOwner() : nullptr;
@@ -142,7 +137,7 @@ Player* TicTacToe::checkForWinner() {
 		Player* c = _grid[arr[2]].bit() ? _grid[arr[2]].bit()->getOwner() : nullptr;
 		// there can be a winner iff a != null
 		if (a && a == b && b == c) {
-			Logger::getInstance().log("Found possible winner: " + a->playerNumber());
+			Logger::getInstance().log("Found possible winner: " + std::to_string(a->playerNumber()));
 			_winner = a;
 			_gameOver = true;
 			return a;
@@ -166,17 +161,13 @@ bool TicTacToe::checkForDraw() {
 	return true;
 }
 
-//
 // state strings
-//
 std::string TicTacToe::initialStateString() {
 	return "000000000";
 }
 
-//
 // this still needs to be tied into imguis init and shutdown
 // we will read the state string and store it in each turn object
-//
 std::string TicTacToe::stateString() const {
 	std::string s;
 	for (int i = 0; i < 9; i++) {
@@ -206,12 +197,31 @@ void TicTacToe::setStateString(const std::string &s) {
 	}
 }
 
-
-//
 // this is the function that will be called by the AI
-//
 void TicTacToe::updateAI() {
+	// run negamax on all avalible positions.
+	int bestVal = -1000;
+	Square* bestMove = nullptr;
 
+	for (int i = 0; i < 9; i++) {
+		if (!_grid[i].bit()) {
+			TicTacToeAI* newState = this->clone();
+			int moveVal = newState->negamax(newState, 0, -1000, 1000, (getCurrentPlayer()->playerNumber() == 1 ? -1 : 1));
+			delete newState;
+
+			Logger::getInstance().log(std::to_string(i) + " eval is " + std::to_string(moveVal));
+
+			if (moveVal > bestVal) {
+				bestMove = &_grid[i];
+				bestVal = moveVal;
+			}
+		}
+	}
+
+	//Logger::getInstance().log("AI took this many steps: " + std::to_string(counter));
+	if (bestMove) {
+		actionForEmptyHolder(*bestMove);
+	}
 }
 
 //
@@ -221,53 +231,97 @@ void TicTacToe::updateAI() {
 
 TicTacToeAI* TicTacToe::clone() {
 	TicTacToeAI* newGame = new TicTacToeAI();
+	std::string gamestate = stateString();
+	for (int i = 0; i < 9; i++) {
+		int pNum = gamestate[i] - '0';
+		newGame->_grid[i] = pNum;
+		newGame->_depthSearches = 0;
+	}
+
 	return newGame;
 }
 
 //
 // helper function for the winner check
 //
-int TicTacToeAI::ownerAt(int index ) const {
-	return 0;
+int TicTacToeAI::ownerAt(int index) const {
+	return _grid[index];
 }
 
 int TicTacToeAI::AICheckForWinner() {
-	return -1;
+	static const int winStates[8][3] = {
+        {0, 1, 2},
+        {3, 4, 5},
+        {6, 7, 8},
+        {0, 3, 6},
+        {1, 4, 7},
+        {2, 5, 8},
+        {0, 4, 8},
+        {2, 4, 6}
+    };
+
+	for (int i = 0; i < 8; i++) {
+		const int* arr = winStates[i];
+		int a = _grid[arr[0]];
+		int b = _grid[arr[1]];
+		int c = _grid[arr[2]];
+
+		if (a && a == b && b == c) {
+			return a;
+		}
+	}
+
+	return 0;
 }
 
 //
 // helper function for a draw
 //
 bool TicTacToeAI::isBoardFull() const {
-	return false;	
+	for (int i = 0; i < 9; i++) {
+		if (!_grid[i]) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 //
 // Returns: positive value if AI wins, negative if human player wins, 0 for draw or undecided
 //
-int TicTacToeAI::evaluateBoard() {
-	// Check for winner
-	return 0;
+int TicTacToeAI::evaluateBoard(int playerColor) {
+	int winner = AICheckForWinner();
+	if (!winner) { return 0; }
+	return winner == playerColor ? 10 : -10;
 }
 
-//
+
+// init like this : negamax(rootState, depth, -inf, +inf, 1)
 // player is the current player's number (AI or human)
-//
-int TicTacToeAI::negamax(TicTacToeAI* state, int depth, int playerColor) {
-	return 0;
-}
+int TicTacToeAI::negamax(TicTacToeAI* state, int depth, int alpha, int beta, int playerColor) {
+	int score = state->evaluateBoard(playerColor);
 
-//
-// evaluate board for minimax needs to return 
-// actual winner
-//
-int TicTacToeAI::evaluateBoardMinimax() {
-	return 0; // No winner yet or draw
-}
+	// if draw or terminal state
+	if (score != 0 || state->isBoardFull()) {
+		return score;
+	}
 
-//
-// player is the current player's number (AI or human)
-//
-int TicTacToeAI::minimax(TicTacToeAI* state, int depth, bool isMaximizingPlayer) {
-	return 0;
+	int bestVal = -1000; // Negative "Infinity"
+	for (int i = 0; i < 9; i++) {
+		if (!state->_grid[i]) {
+			state->_grid[i] = playerColor;
+			bestVal = std::max(bestVal, -negamax(state, depth + 1, -beta, -alpha, -playerColor));
+			// undo move when backtracing
+			state->_grid[i] = 0;
+
+			// alpha-beta pruning
+			/*alpha = std::max(alpha, bestVal);
+			if (alpha >= beta) {
+				break;
+			}*/
+		}
+	}
+
+	return bestVal;
 }
