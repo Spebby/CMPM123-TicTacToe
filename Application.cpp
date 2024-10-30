@@ -82,7 +82,7 @@ namespace ClassGame {
         } else if (game->checkForDraw()) {
             gameWinner = -1;
         } else {
-            Logger::getInstance().log(std::to_string(game->getCurrentPlayer()->playerNumber()) + "\'s turn.");
+            Logger::getInstance().log(std::to_string(game->getCurrentPlayer()->playerNumber() + 1) + "\'s turn.");
         }
     }
 }

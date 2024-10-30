@@ -1,6 +1,10 @@
 #include "TicTacToe.h"
 #include "../tools/Logger.h"
 
+int activePlayer(int active) {
+	return active == 1 ? 2 : 1;
+}
+
 TicTacToe::TicTacToe() {
 
 }
@@ -8,9 +12,7 @@ TicTacToe::TicTacToe() {
 TicTacToe::~TicTacToe() {
 }
 
-//
 // make an X or an O
-//
 Bit* TicTacToe::PieceForPlayer(const int playerNumber) {
 	// depending on playerNumber load the "x.png" or the "o.png" graphic
 	Bit *bit = new Bit();
@@ -58,7 +60,7 @@ void TicTacToe::scanForMouse() {
 		if (_grid[i].isMouseOver(mousePos)) {
 			if (ImGui::IsMouseClicked(0)) {
 				if (!_gameOver && actionForEmptyHolder(_grid[i])) {
-					Logger::getInstance().log(std::to_string(getCurrentPlayer()->playerNumber()) + " played at " + std::to_string(i));
+					Logger::getInstance().log(std::to_string(activePlayer(getCurrentPlayer()->playerNumber())) + " played at " + std::to_string(i));
 					endTurn();
 				}
 			} else {
@@ -182,10 +184,8 @@ std::string TicTacToe::stateString() const {
 	return s;
 }
 
-//
 // this still needs to be tied into imguis init and shutdown
 // when the program starts it will load the current game from the imgui ini file and set the game state to the last saved state
-//
 void TicTacToe::setStateString(const std::string &s) {
 	for (int i = 0; i < 9; i++) {
 		int playerNumber = s[i] - '0';
@@ -206,7 +206,9 @@ void TicTacToe::updateAI() {
 	for (int i = 0; i < 9; i++) {
 		if (!_grid[i].bit()) {
 			TicTacToeAI* newState = this->clone();
-			int moveVal = newState->negamax(newState, 0, -1000, 1000, (getCurrentPlayer()->playerNumber() == 1 ? -1 : 1));
+			newState->_grid[i] = activePlayer(getCurrentPlayer()->playerNumber());
+			// start negamax with response from opponent.
+			int moveVal = -newState->negamax(newState, 0, -1000, 1000, activePlayer(getCurrentPlayer()->playerNumber()) == 2 ? 1 : 2);
 			delete newState;
 
 			Logger::getInstance().log(std::to_string(i) + " eval is " + std::to_string(moveVal));
@@ -220,15 +222,17 @@ void TicTacToe::updateAI() {
 
 	//Logger::getInstance().log("AI took this many steps: " + std::to_string(counter));
 	if (bestMove) {
+		for (int i = 0; i < 9; i++) {
+			if (&_grid[i] == bestMove) {
+				Logger::getInstance().log(std::to_string(activePlayer(getCurrentPlayer()->playerNumber())) + " played at " + std::to_string(i));
+			}
+		}
 		actionForEmptyHolder(*bestMove);
 	}
 }
 
-//
 // AI class
 // this is a small class that just has a bunch of ints in it to allow us to recursively call minimax
-//
-
 TicTacToeAI* TicTacToe::clone() {
 	TicTacToeAI* newGame = new TicTacToeAI();
 	std::string gamestate = stateString();
@@ -241,9 +245,7 @@ TicTacToeAI* TicTacToe::clone() {
 	return newGame;
 }
 
-//
 // helper function for the winner check
-//
 int TicTacToeAI::ownerAt(int index) const {
 	return _grid[index];
 }
@@ -274,9 +276,7 @@ int TicTacToeAI::AICheckForWinner() {
 	return 0;
 }
 
-//
 // helper function for a draw
-//
 bool TicTacToeAI::isBoardFull() const {
 	for (int i = 0; i < 9; i++) {
 		if (!_grid[i]) {
@@ -287,9 +287,7 @@ bool TicTacToeAI::isBoardFull() const {
 	return true;
 }
 
-//
 // Returns: positive value if AI wins, negative if human player wins, 0 for draw or undecided
-//
 int TicTacToeAI::evaluateBoard(int playerColor) {
 	int winner = AICheckForWinner();
 	if (!winner) { return 0; }
@@ -311,15 +309,14 @@ int TicTacToeAI::negamax(TicTacToeAI* state, int depth, int alpha, int beta, int
 	for (int i = 0; i < 9; i++) {
 		if (!state->_grid[i]) {
 			state->_grid[i] = playerColor;
-			bestVal = std::max(bestVal, -negamax(state, depth + 1, -beta, -alpha, -playerColor));
+			bestVal = std::max(bestVal, -negamax(state, depth + 1, -beta, -alpha, (3 - playerColor)));
 			// undo move when backtracing
 			state->_grid[i] = 0;
 
-			// alpha-beta pruning
-			/*alpha = std::max(alpha, bestVal);
+			alpha = std::max(alpha, bestVal);
 			if (alpha >= beta) {
 				break;
-			}*/
+			}
 		}
 	}
 
